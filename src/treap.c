@@ -8,9 +8,11 @@ node_t *new_node(node_t *parent,char *sym,void *val)
 	n->priority=rand();
 	return n;
 }
-tree_t *new_tree(void)
+tree_t *new_tree(dtor_t destructor)
 {
-	return calloc(1,sizeof(tree_t));
+	tree_t *t=calloc(1,sizeof(tree_t));
+	t->destructor=destructor;
+	return t;
 }
 static inline int dir_of(node_t *parent,node_t *child)
 {
@@ -44,6 +46,8 @@ void insert(tree_t *tree,char *sym,void *val)
 	for (;;) {
 		int cmp=strcmp(sym,n->sym);
 		if (!cmp) {
+			if (tree->destructor)
+				tree->destructor(n->val);
 			n->val=val;
 			break;
 		} else if (!n->child[cmp>0]) {
@@ -74,8 +78,50 @@ char *lookup(tree_t *tree,char *sym)
 {
 	return node_lookup(tree,sym)->val;
 }
+void rotate_down(node_t *node)
+{ // Assumes node has children
+	int dir;
+	if (node->child[0]&&node->child[1]) {
+		dir=node->child[0]->priority>node->child[1]->priority;
+	} else
+		dir=node->child[0]?1:0; // dir rot moves !dir child up
+	rotate(node,dir);
+}
+void expunge(tree_t *tree,char *sym)
+{
+	node_t *n=node_lookup(tree,sym);
+	n->priority=-1;
+	if (!n->parent) {
+		rotate_down(n);
+		tree->root=n->parent;
+	}
+	while (n->child[0]||n->child[1]) {
+		rotate_down(n);
+	}
+	n->parent->child[!dir_of(n->parent,n)]=NULL;
+	if (tree->destructor)
+		tree->destructor(n->val);
+	free(n);
+}
+void free_subtree(dtor_t d,node_t *node)
+{
+	if (!node)
+		return;
+	free_subtree(d,node->child[0]);
+	if (d)
+		d(node->val);
+	free_subtree(d,node->child[1]);
+	free(node);
+}
+void free_tree(tree_t *tree)
+{
+	free_subtree(tree->destructor,tree->root);
+	free(tree);
+}
+// Debugging stuff
 void subtree_structure(node_t *node,int depth)
 {
+	/**/if (!node) return;
 	for (int i=0;i<depth;i++)
 		putchar('|');
 	if (!node)  {

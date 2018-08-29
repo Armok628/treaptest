@@ -2,4 +2,4 @@ CC=clang
 CFLAGS=-g
 
 main:
-	$(CC) $(CFLAGS) main.c src/*.c
+	$(CC) $(CFLAGS) test.c src/*.c
