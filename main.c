@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "src/tree.h"
+#include "src/treap.h"
 #include "src/randword.h"
 int main(int argc,char **argv)
 {

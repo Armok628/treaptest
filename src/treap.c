@@ -1,15 +1,4 @@
-typedef struct node {
-	char *sym;
-	void *val;
-	struct node *parent;
-	struct node *child[2];
-	int priority;
-} node_t;
-typedef struct tree {
-	node_t *root;
-} tree_t;
-#ifndef TREE_H
-#define TREE_H
+#include "treap.h"
 node_t *new_node(node_t *parent,char *sym,void *val)
 {
 	node_t *n=calloc(1,sizeof(node_t));
@@ -115,4 +104,3 @@ void print_tree(tree_t *tree,int struc)
 	} else
 		puts("NULL");
 }
-#endif
