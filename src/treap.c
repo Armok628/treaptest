@@ -16,7 +16,7 @@ tree_t *new_tree(dtor_t destructor)
 }
 static inline int dir_of(node_t *parent,node_t *child)
 {
-	return parent->child[0]==child?0:1;
+	return child==parent->child[1];
 }
 void rotate(node_t *root,int dir)
 {
@@ -87,7 +87,7 @@ void rotate_down(node_t *node)
 	if (node->child[0]&&node->child[1]) {
 		dir=node->child[0]->priority>node->child[1]->priority;
 	} else
-		dir=node->child[0]?1:0; // dir rot moves !dir child up
+		dir=!!node->child[0]; // dir rot moves !dir child up
 	rotate(node,dir);
 }
 void expunge(tree_t *tree,char *sym)

@@ -6,7 +6,7 @@
 typedef struct node {
 	char *sym;
 	void *val;
-	struct node *parent;
+	struct node *parent; // TODO: Remove
 	struct node *child[2];
 	int priority;
 } node_t;
