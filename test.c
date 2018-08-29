@@ -34,7 +34,7 @@ int find_dup_tests(test_t *list,test_t *test)
 }
 void locdump(tree_t *tree)
 { // Print number of buckets in each location
-	print_tree(tree,1);
+	subtree_structure(tree->root,0);
 }
 int main(int argc,char **argv)
 {
@@ -156,7 +156,7 @@ NOT_ENOUGH_ARGS:
 				printf("Expunging %s\n\n",str);
 				expunge(tree,str);
 			} else if (!strcmp(input,"print_tree\n")) {
-				print_tree(tree,1);
+				subtree_structure(tree->root,0);
 			} else if (!strcmp(input,"new_tree\n")) {
 				printf("Making new tree\n\n");
 				free_tree(tree);
