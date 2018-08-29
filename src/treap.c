@@ -49,13 +49,15 @@ void insert(tree_t *tree,char *sym,void *val)
 			if (tree->destructor)
 				tree->destructor(n->val);
 			n->val=val;
-			break;
+			return;
 		} else if (!n->child[cmp>0]) {
 			n->child[cmp>0]=new_node(n,sym,val);
+			n=n->child[cmp>0];
 			break;
 		} else
 			n=n->child[cmp>0];
 	}
+	// n now points to the inserted node
 	while (n->parent&&n->priority>n->parent->priority)
 		rotate(n->parent,!dir_of(n->parent,n));
 	if (!n->parent)
@@ -80,6 +82,7 @@ char *lookup(tree_t *tree,char *sym)
 }
 void rotate_down(node_t *node)
 { // Assumes node has children
+	/**/printf("Rotating %s down\n",node->sym);
 	int dir;
 	if (node->child[0]&&node->child[1]) {
 		dir=node->child[0]->priority>node->child[1]->priority;
@@ -89,18 +92,26 @@ void rotate_down(node_t *node)
 }
 void expunge(tree_t *tree,char *sym)
 {
+	/**/printf("Expunging %s\n",sym);
 	node_t *n=node_lookup(tree,sym);
+	if (!n)
+		return;
 	n->priority=-1;
 	if (!n->parent) {
-		rotate_down(n);
+		if (n->child[0]||n->child[1])
+			rotate_down(n);
 		tree->root=n->parent;
 	}
 	while (n->child[0]||n->child[1]) {
 		rotate_down(n);
 	}
-	n->parent->child[!dir_of(n->parent,n)]=NULL;
+	if (n->parent)
+		n->parent->child[dir_of(n->parent,n)]=NULL;
+	else
+		tree->root=NULL;
 	if (tree->destructor)
 		tree->destructor(n->val);
+	//free(n->sym);
 	free(n);
 }
 void free_subtree(dtor_t d,node_t *node)
@@ -111,6 +122,7 @@ void free_subtree(dtor_t d,node_t *node)
 	if (d)
 		d(node->val);
 	free_subtree(d,node->child[1]);
+	//free(node->sym);
 	free(node);
 }
 void free_tree(tree_t *tree)

@@ -145,7 +145,7 @@ NOT_ENOUGH_ARGS:
 				break;
 			else if (sscanf(input,"insert %s %ld",str,&num)==2) {
 				printf("Inserting %s as %ld\n\n",str,num);
-				insert(tree,str,(void *)num);
+				insert(tree,strdup(str),(void *)num);
 			} else if (sscanf(input,"lookup %s",str)==1) {
 				long n=(long)lookup(tree,str);
 				if (n)
@@ -155,7 +155,9 @@ NOT_ENOUGH_ARGS:
 			} else if (sscanf(input,"expunge %s",str)==1) {
 				printf("Expunging %s\n\n",str);
 				expunge(tree,str);
-			} else if (!strcmp(input,"new_tree")) {
+			} else if (!strcmp(input,"print_tree\n")) {
+				print_tree(tree,1);
+			} else if (!strcmp(input,"new_tree\n")) {
 				printf("Making new tree\n\n");
 				free_tree(tree);
 				tree=new_tree(NULL);
