@@ -31,7 +31,6 @@ int find_dup_tests(test_t *list,test_t *test)
 	for (;list;list=list->cdr)
 		i+=!strcmp(list->str,test->str);
 	return i-1;
-
 }
 void locdump(tree_t *tree)
 { // Print number of buckets in each location
@@ -65,10 +64,11 @@ int main(int argc,char **argv)
 	tree_t *tree=new_tree(&free);
 	test_t *testlist=new_test(); // Make first test
 	test_t *test=testlist;
+	// Build expectations and add tree values
+	start_timer();
 	insert(tree,test->str,intptr_to(test->val));
 	if (!time_only&&!no_adds)
 		printf("Adding %s as %d\n",test->str,test->val);
-	// Build expectations and add tree values
 	for (int i=1;i<words;i++) {
 		test_t *t=new_test();
 		if (!time_only&&!no_adds)
@@ -77,6 +77,7 @@ int main(int argc,char **argv)
 		test->cdr=t;
 		test=t;
 	}
+	printf("\nInsertion phase took %f seconds\n",read_timer());
 	// Test expectations
 	start_timer();
 	int successes=0,failures=0,duplicates=0;
