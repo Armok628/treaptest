@@ -38,13 +38,14 @@ void rotate(node_t *root,int dir)
 }
 void insert(tree_t *tree,char *sym,void *val)
 {
+	/**/sym=strdup(sym);
 	if (!tree->root) {
 		tree->root=new_node(NULL,sym,val);
 		return;
 	}
 	node_t *n=tree->root;
 	for (;;) {
-		int cmp=strcmp(sym,n->sym);
+		int cmp=strcasecmp(sym,n->sym);
 		if (!cmp) {
 			if (tree->destructor)
 				tree->destructor(n->val);
@@ -69,20 +70,20 @@ node_t *node_lookup(tree_t *tree,char *sym)
 		return NULL;
 	node_t *n=tree->root;
 	while (n) {
-		int cmp=strcmp(sym,n->sym);
+		int cmp=strcasecmp(sym,n->sym);
 		if (!cmp)
 			return n;
 		n=n->child[cmp>0];
 	}
 	return NULL;
 }
-char *lookup(tree_t *tree,char *sym)
+void *lookup(tree_t *tree,char *sym)
 {
-	return node_lookup(tree,sym)->val;
+	node_t *n=node_lookup(tree,sym);
+	return n?n->val:NULL;
 }
 void rotate_down(node_t *node)
 { // Assumes node has children
-	/**/printf("Rotating %s down\n",node->sym);
 	int dir;
 	if (node->child[0]&&node->child[1]) {
 		dir=node->child[0]->priority>node->child[1]->priority;
@@ -92,7 +93,6 @@ void rotate_down(node_t *node)
 }
 void expunge(tree_t *tree,char *sym)
 {
-	/**/printf("Expunging %s\n",sym);
 	node_t *n=node_lookup(tree,sym);
 	if (!n)
 		return;
@@ -111,7 +111,7 @@ void expunge(tree_t *tree,char *sym)
 		tree->root=NULL;
 	if (tree->destructor)
 		tree->destructor(n->val);
-	//free(n->sym);
+	free(n->sym);
 	free(n);
 }
 void free_subtree(dtor_t d,node_t *node)
@@ -122,13 +122,25 @@ void free_subtree(dtor_t d,node_t *node)
 	if (d)
 		d(node->val);
 	free_subtree(d,node->child[1]);
-	//free(node->sym);
+	free(node->sym);
 	free(node);
 }
 void free_tree(tree_t *tree)
 {
 	free_subtree(tree->destructor,tree->root);
 	free(tree);
+}
+void subtree_do(node_t *node,void (*callback)(node_t *))
+{
+	if (!node)
+		return;
+	subtree_do(node->child[0],callback);
+	callback(node);
+	subtree_do(node->child[1],callback);
+}
+void tree_do(tree_t *tree,void (*callback)(node_t *))
+{
+	subtree_do(tree->root,callback);
 }
 // Debugging stuff
 void subtree_structure(node_t *node,int depth)
@@ -144,21 +156,4 @@ void subtree_structure(node_t *node,int depth)
 	subtree_structure(node->child[0],depth+1);
 	subtree_structure(node->child[1],depth+1);
 }
-void subtree_keys(node_t *node)
-{
-	if (!node)
-		return;
-	subtree_keys(node->child[0]);
-	puts(node->sym);
-	subtree_keys(node->child[1]);
-}
-void print_tree(tree_t *tree,int struc)
-{
-	if (tree->root) {
-		if (struc)
-			subtree_structure(tree->root,0);
-		else
-			subtree_keys(tree->root);
-	} else
-		puts("NULL");
-}
+

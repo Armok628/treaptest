@@ -18,8 +18,11 @@ typedef struct tree {
 
 tree_t *new_tree(dtor_t);
 void insert(tree_t *,char *,void *);
-char *lookup(tree_t *,char *);
+void *lookup(tree_t *,char *);
 void expunge(tree_t *,char *);
-void print_tree(tree_t *,int);
 void free_tree(tree_t *);
+void tree_do(tree_t *,void (*)(node_t *));
+void print_structure(tree_t *);
+void print_tree(tree_t *);
+/**/void subtree_structure(node_t *,int);
 #endif
