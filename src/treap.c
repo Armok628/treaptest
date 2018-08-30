@@ -1,9 +1,20 @@
 #include "treap.h"
+const unsigned long fnv_prime=0x100000001b3;
+const unsigned long fnv_offset=0xcbf29ce484222325;
+unsigned long fnv_1a(char *str)
+{
+	unsigned long key=fnv_offset;
+	for (char c=*str++;c;c=*str++) {
+		key^=c;
+		key*=fnv_prime;
+	}
+	return key;
+}
 node_t *new_node(node_t *parent,char *sym,void *val)
 {
 	node_t *n=calloc(1,sizeof(node_t));
 	n->parent=parent;
-	n->sym=sym;
+	n->key=fnv_1a(sym);
 	n->val=val;
 	n->priority=rand();
 	return n;
@@ -17,6 +28,10 @@ tree_t *new_tree(dtor_t destructor)
 static inline int dir_of(node_t *parent,node_t *child)
 {
 	return child==parent->child[1];
+}
+static inline int ulcmp(unsigned long a,unsigned long b)
+{
+	return a==b?0:a>b?1:-1;
 }
 void rotate(node_t *root,int dir)
 {
@@ -38,14 +53,14 @@ void rotate(node_t *root,int dir)
 }
 void insert(tree_t *tree,char *sym,void *val)
 {
-	/**/sym=strdup(sym);
+	unsigned long key=fnv_1a(sym);
 	if (!tree->root) {
 		tree->root=new_node(NULL,sym,val);
 		return;
 	}
 	node_t *n=tree->root;
 	for (;;) {
-		int cmp=strcasecmp(sym,n->sym);
+		int cmp=ulcmp(key,n->key);
 		if (!cmp) {
 			if (tree->destructor)
 				tree->destructor(n->val);
@@ -66,11 +81,12 @@ void insert(tree_t *tree,char *sym,void *val)
 }
 node_t *node_lookup(tree_t *tree,char *sym)
 {
+	unsigned long key=fnv_1a(sym);
 	if (!tree->root)
 		return NULL;
 	node_t *n=tree->root;
 	while (n) {
-		int cmp=strcasecmp(sym,n->sym);
+		int cmp=ulcmp(key,n->key);
 		if (!cmp)
 			return n;
 		n=n->child[cmp>0];
@@ -111,7 +127,6 @@ void expunge(tree_t *tree,char *sym)
 		tree->root=NULL;
 	if (tree->destructor)
 		tree->destructor(n->val);
-	free(n->sym);
 	free(n);
 }
 void free_subtree(dtor_t d,node_t *node)
@@ -122,7 +137,6 @@ void free_subtree(dtor_t d,node_t *node)
 	if (d)
 		d(node->val);
 	free_subtree(d,node->child[1]);
-	free(node->sym);
 	free(node);
 }
 void free_tree(tree_t *tree)
@@ -152,7 +166,7 @@ void subtree_structure(node_t *node,int depth)
 		puts("NULL");
 		return;
 	}
-	printf("%s (%d) => %p\n",node->sym,node->priority,node->val);
+	printf("%lu (%d) => %p\n",node->key,node->priority,node->val);
 	subtree_structure(node->child[0],depth+1);
 	subtree_structure(node->child[1],depth+1);
 }

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 typedef struct node {
-	char *sym;
+	unsigned long key;
 	void *val;
 	struct node *parent; // TODO: Remove
 	struct node *child[2];
